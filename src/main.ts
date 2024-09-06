@@ -9,9 +9,3 @@ async function main() {
 }
 
 main();
-
-const clickElement = document.getElementById("click")!;
-clickElement.addEventListener("click", () => {
-  renderer.play();
-  clickElement.hidden = true;
-});

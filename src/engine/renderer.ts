@@ -40,13 +40,9 @@ export default class Renderer extends RendererBackend {
   private _projection!: mat4;
 
   private readonly TEX_SIZE = 256;
-  private readonly WORKGROUP_SIZE = 16;
-
-  private _play: boolean;
 
   constructor() {
     super();
-    this._play = false;
   }
 
   // public methods
@@ -69,21 +65,19 @@ export default class Renderer extends RendererBackend {
   }
 
   public async run() {
+    this.setFrameData();
+
     await this.writeBuffers();
 
     await this.createEncoder();
 
-    if (this._play) await this.update();
+    await this.update();
 
     await this.draw();
 
     await this.submitCommandBuffer();
 
     requestAnimationFrame(() => this.run());
-  }
-
-  public play() {
-    this._play = true;
   }
 
   private async createPipelines() {

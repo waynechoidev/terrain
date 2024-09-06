@@ -1,20 +1,37 @@
 import { generateMips, loadImageBitmap, Vertex } from "@/engine/utils";
 
 export default abstract class RendererBackend {
+  protected _canvas!: HTMLCanvasElement;
   protected _device!: GPUDevice;
   protected _canvasContext!: GPUCanvasContext;
   protected _commandEncoder!: GPUCommandEncoder;
 
   protected readonly WIDTH: number;
   protected readonly HEIGHT: number;
+  protected readonly WORKGROUP_SIZE = 16;
 
+  protected _fps: HTMLElement;
+  protected _drag: HTMLElement;
+  protected _warning: HTMLElement;
   protected _previousFrameTime: number;
+  protected _previousFpsUpdateTime: number;
+  protected _delta: number;
+  protected _frameCount: number;
 
   constructor() {
-    this.WIDTH = window.innerWidth;
-    this.HEIGHT = window.innerHeight;
+    this.WIDTH =
+      Math.floor(window.innerWidth / this.WORKGROUP_SIZE) * this.WORKGROUP_SIZE;
+    this.HEIGHT =
+      Math.floor(window.innerHeight / this.WORKGROUP_SIZE) *
+      this.WORKGROUP_SIZE;
 
-    this._previousFrameTime = 0;
+    this._previousFrameTime = performance.now();
+    this._previousFpsUpdateTime = performance.now();
+    this._delta = 0;
+    this._frameCount = 0;
+    this._fps = document.getElementById("fps") as HTMLElement;
+    this._drag = document.getElementById("drag") as HTMLElement;
+    this._warning = document.getElementById("warning") as HTMLElement;
   }
 
   abstract initialize(): Promise<void>;
@@ -30,13 +47,13 @@ export default abstract class RendererBackend {
   }
 
   protected async getCanvasContext() {
-    const canvas = document.querySelector("canvas") as HTMLCanvasElement;
-    if (!canvas) console.error("Cannot find a canvas");
+    this._canvas = document.querySelector("canvas") as HTMLCanvasElement;
+    if (!this._canvas) console.error("Cannot find a canvas");
 
-    canvas.width = this.WIDTH;
-    canvas.height = this.HEIGHT;
+    this._canvas.width = this.WIDTH;
+    this._canvas.height = this.HEIGHT;
 
-    this._canvasContext = canvas.getContext("webgpu") as GPUCanvasContext;
+    this._canvasContext = this._canvas.getContext("webgpu") as GPUCanvasContext;
     if (!this._canvasContext) console.error("Cannot find a canvas context");
 
     const canvasConfig: GPUCanvasConfiguration = {
@@ -127,7 +144,7 @@ export default abstract class RendererBackend {
     return pipeline;
   }
 
-  public async createCubemapTexture(imgSrcs: string[], maxMipLevel = 0) {
+  protected async createCubemapTexture(imgSrcs: string[], maxMipLevel = 0) {
     const imgs = await Promise.all(imgSrcs.map(loadImageBitmap));
     const texture = this._device.createTexture({
       label: "yellow F on red",
@@ -159,7 +176,7 @@ export default abstract class RendererBackend {
     return texture;
   }
 
-  public async createTexture(imgSrc: string, maxMipLevel = 0) {
+  protected async createTexture(imgSrc: string, maxMipLevel = 0) {
     const img = await loadImageBitmap(imgSrc);
     const mips = await generateMips(img, maxMipLevel);
 
@@ -186,7 +203,7 @@ export default abstract class RendererBackend {
     return texture;
   }
 
-  public getVerticesData(vertices: Vertex[]) {
+  protected getVerticesData(vertices: Vertex[]) {
     const verticesData: number[] = [];
     for (let i = 0; i < vertices.length; i++) {
       const { position, texCoord } = vertices[i];
@@ -195,8 +212,6 @@ export default abstract class RendererBackend {
 
     return verticesData;
   }
-
-  //
 
   protected async getRenderPassDesc() {
     const canvasTexture = this._canvasContext.getCurrentTexture();
@@ -238,11 +253,39 @@ export default abstract class RendererBackend {
     this._device.queue.submit([commandBuffer]);
   }
 
-  protected getDelta() {
+  protected setFrameData() {
     const time = performance.now();
-    const delta: number = time - this._previousFrameTime;
-    this._previousFrameTime = time;
+    const currentDelta = time - this._previousFrameTime;
 
-    return delta;
+    this._delta = this._delta * 0.9 + currentDelta * 0.1;
+
+    this._frameCount++;
+
+    if (time - this._previousFpsUpdateTime >= 1000) {
+      this._fps.innerHTML = `FPS: ${this._frameCount}`;
+
+      this._frameCount = 0;
+      this._previousFpsUpdateTime = time;
+    }
+
+    this._previousFrameTime = time;
+  }
+
+  protected initializeVecNArray(n: number) {
+    return new Float32Array(this.WIDTH * this.HEIGHT * n);
+  }
+
+  protected createSurfaceBuffer(label: string, n: number) {
+    const buffer = this._device.createBuffer({
+      label: `${label} storage buffer`,
+      size: this.WIDTH * this.HEIGHT * n * Float32Array.BYTES_PER_ELEMENT,
+      usage:
+        GPUBufferUsage.STORAGE |
+        GPUBufferUsage.COPY_SRC |
+        GPUBufferUsage.COPY_DST,
+    });
+    // initialize
+    this._device.queue.writeBuffer(buffer, 0, this.initializeVecNArray(n));
+    return buffer;
   }
 }
