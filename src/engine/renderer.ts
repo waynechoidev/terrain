@@ -39,7 +39,7 @@ export default class Renderer extends RendererBackend {
   private _camera!: Camera;
   private _projection!: mat4;
 
-  private readonly TEX_SIZE = 256;
+  private readonly TEX_SIZE = 1024;
 
   constructor() {
     super();
@@ -264,9 +264,8 @@ export default class Renderer extends RendererBackend {
 
   private setMatrix() {
     this._model = mat4.create();
-    const scale = this.WIDTH > 500 ? 0.4 : 0.3;
+    const scale = this.WIDTH > 500 ? 1 : 0.3;
     mat4.scale(this._model, this._model, vec3.fromValues(scale, scale, scale));
-    mat4.translate(this._model, this._model, vec3.fromValues(-0.5, 0.2, 0));
     mat4.rotateX(this._model, this._model, toRadian(30));
     mat4.rotateY(this._model, this._model, toRadian(-15));
 
@@ -311,14 +310,6 @@ export default class Renderer extends RendererBackend {
       1
     );
 
-    computePassEncoder.setPipeline(this._computeTexturePipeline);
-    computePassEncoder.setBindGroup(0, this._computeTextureBindGroup);
-    computePassEncoder.dispatchWorkgroups(
-      this.TEX_SIZE / this.WORKGROUP_SIZE,
-      this.TEX_SIZE / this.WORKGROUP_SIZE,
-      1
-    );
-
     computePassEncoder.end();
 
     await this.submitCommandBuffer();
@@ -344,27 +335,27 @@ export default class Renderer extends RendererBackend {
       label: "compute pass",
     });
 
-    computePassEncoder.setPipeline(this._computeDivergencePipeline);
-    computePassEncoder.setBindGroup(0, this._computeDivergenceBindGroup);
-    computePassEncoder.dispatchWorkgroups(
-      this.TEX_SIZE / this.WORKGROUP_SIZE,
-      this.TEX_SIZE / this.WORKGROUP_SIZE,
-      1
-    );
+    // computePassEncoder.setPipeline(this._computeDivergencePipeline);
+    // computePassEncoder.setBindGroup(0, this._computeDivergenceBindGroup);
+    // computePassEncoder.dispatchWorkgroups(
+    //   this.TEX_SIZE / this.WORKGROUP_SIZE,
+    //   this.TEX_SIZE / this.WORKGROUP_SIZE,
+    //   1
+    // );
 
-    computePassEncoder.setPipeline(this._computeJacobiPipeline);
-    for (let i = 0; i < 40; i++) {
-      if (i % 2 == 0) {
-        computePassEncoder.setBindGroup(0, this._computeJacobiBindGroupOdd);
-      } else {
-        computePassEncoder.setBindGroup(0, this._computeJacobiBindGroupEven);
-      }
-      computePassEncoder.dispatchWorkgroups(
-        this.TEX_SIZE / this.WORKGROUP_SIZE,
-        this.TEX_SIZE / this.WORKGROUP_SIZE,
-        1
-      );
-    }
+    // computePassEncoder.setPipeline(this._computeJacobiPipeline);
+    // for (let i = 0; i < 40; i++) {
+    //   if (i % 2 == 0) {
+    //     computePassEncoder.setBindGroup(0, this._computeJacobiBindGroupOdd);
+    //   } else {
+    //     computePassEncoder.setBindGroup(0, this._computeJacobiBindGroupEven);
+    //   }
+    //   computePassEncoder.dispatchWorkgroups(
+    //     this.TEX_SIZE / this.WORKGROUP_SIZE,
+    //     this.TEX_SIZE / this.WORKGROUP_SIZE,
+    //     1
+    //   );
+    // }
 
     computePassEncoder.setPipeline(this._computeTexturePipeline);
     computePassEncoder.setBindGroup(0, this._computeTextureBindGroup);

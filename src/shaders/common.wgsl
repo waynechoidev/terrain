@@ -1,4 +1,4 @@
-const TEX_SIZE:u32 = 256;
+const TEX_SIZE:u32 = 1024;
 
 struct VSOutput {
   @builtin(position) position: vec4f,
