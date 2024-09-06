@@ -3,7 +3,13 @@
 @group(0) @binding(2) var mySampler: sampler;
 
 @fragment fn fs(input: VSOutput) -> @location(0) vec4f {
-  let height = input.height;
-  
-  return vec4f(vec3f(1-height), 1.0);
+    // Read height value from the texture and apply gamma correction
+    let height = pow(vec3f(input.height), vec3f(2.2)); // Gamma correction
+
+    let green= vec3f(0.133, 0.545, 0.133);
+    let brown= vec3f(0.545, 0.271, 0.075);
+    let color = mix(green, brown, input.color);
+    
+    let brightnessFactor:f32 = 3.0;
+    return vec4f(color * height * brightnessFactor, 1.0);
 }

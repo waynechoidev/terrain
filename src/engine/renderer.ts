@@ -15,6 +15,7 @@ export default class Renderer extends RendererBackend {
   private _indexBuffer!: GPUBuffer;
   private _indicesLength!: number;
   private _matrixUniformBuffer!: GPUBuffer;
+  private _noiseUniformBuffer!: GPUBuffer;
 
   private _heightMapTexture!: GPUTexture;
   private _sampler!: GPUSampler;
@@ -25,6 +26,8 @@ export default class Renderer extends RendererBackend {
   private _model!: mat4;
   private _camera!: Camera;
   private _projection!: mat4;
+
+  private _progress = 0;
 
   private readonly TEX_SIZE = 1024;
 
@@ -50,9 +53,11 @@ export default class Renderer extends RendererBackend {
   }
 
   public async run() {
+    this._progress += 0.001;
+
     this.setFrameData();
 
-    mat4.rotateZ(this._model, this._model, toRadian(-0.1));
+    // mat4.rotateZ(this._model, this._model, toRadian(-0.1));
 
     await this.writeBuffers();
 
@@ -120,6 +125,11 @@ export default class Renderer extends RendererBackend {
       size: (16 + 16 + 16) * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
+    this._noiseUniformBuffer = this._device.createBuffer({
+      label: "noise uniforms",
+      size: 4 * Float32Array.BYTES_PER_ELEMENT,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
   }
 
   private async createTextures() {
@@ -154,13 +164,17 @@ export default class Renderer extends RendererBackend {
     this._computeNoiseBindGroup = this._device.createBindGroup({
       label: "compute noise bind group",
       layout: this._computeNoisePipeline.getBindGroupLayout(0),
-      entries: [{ binding: 0, resource: this._heightMapTexture.createView() }],
+      entries: [
+        { binding: 0, resource: this._heightMapTexture.createView() },
+        { binding: 1, resource: { buffer: this._noiseUniformBuffer } },
+      ],
     });
   }
 
   private setMatrix() {
     this._model = mat4.create();
     const scale = this.WIDTH > 500 ? 0.8 : 0.3;
+    mat4.translate(this._model, this._model, vec3.fromValues(0, -0.5, 0));
     mat4.scale(this._model, this._model, vec3.fromValues(scale, scale, scale));
     mat4.rotateX(this._model, this._model, toRadian(-50));
     mat4.rotateZ(this._model, this._model, toRadian(15));
@@ -188,6 +202,12 @@ export default class Renderer extends RendererBackend {
       this._matrixUniformBuffer,
       0,
       new Float32Array([...this._model, ...view, ...this._projection])
+    );
+
+    this._device.queue.writeBuffer(
+      this._noiseUniformBuffer,
+      0,
+      new Float32Array([this._progress, 0, 0, 0])
     );
   }
 
