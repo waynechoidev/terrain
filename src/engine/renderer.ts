@@ -266,8 +266,8 @@ export default class Renderer extends RendererBackend {
     this._model = mat4.create();
     const scale = this.WIDTH > 500 ? 1 : 0.3;
     mat4.scale(this._model, this._model, vec3.fromValues(scale, scale, scale));
-    mat4.rotateX(this._model, this._model, toRadian(30));
-    mat4.rotateY(this._model, this._model, toRadian(-15));
+    // mat4.rotateX(this._model, this._model, toRadian(180));
+    // mat4.rotateY(this._model, this._model, toRadian(-15));
 
     this._camera = new Camera({
       position: vec3.fromValues(0, 0, 2.5),

@@ -10,7 +10,7 @@
   var output: VSOutput;
   var position = input.position;
   let heightMap = textureSampleLevel(heightMap, mySampler, input.texCoord, 0);
-  position.y = heightMap.r;
+  position.z = heightMap.r;
 
   output.position = uni.projection * uni.view * uni.model * vec4f(position, 1.0);
   output.height = heightMap.r;

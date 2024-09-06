@@ -6,19 +6,19 @@ export default function Surface(num: number) {
   const indices: [number, number, number][] = [];
 
   for (let x = 0; x < num; x++) {
-    for (let z = 0; z < num; z++) {
+    for (let y = 0; y < num; y++) {
       vertices.push({
-        position: vec3.fromValues(x / num, 0, z / num),
-        texCoord: vec2.fromValues(x / num, z / num),
+        position: vec3.fromValues(x / num, y / num, 0),
+        texCoord: vec2.fromValues(x / num, y / num),
       });
     }
   }
 
   for (let x = 0; x < num - 1; x++) {
-    for (let z = 0; z < num - 1; z++) {
+    for (let y = 0; y < num - 1; y++) {
       indices.push(
-        [x + z * num, x + 1 + z * num, x + (z + 1) * num],
-        [x + 1 + z * num, x + 1 + (z + 1) * num, x + (z + 1) * num]
+        [x + y * num, x + (y + 1) * num, x + 1 + y * num],
+        [x + (y + 1) * num, x + 1 + (y + 1) * num, x + 1 + y * num]
       );
     }
   }
