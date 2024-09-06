@@ -8,8 +8,13 @@ export default function Surface(num: number) {
   for (let x = 0; x < num; x++) {
     for (let y = 0; y < num; y++) {
       vertices.push({
-        position: vec3.fromValues(x / num, y / num, 0),
-        texCoord: vec2.fromValues(x / num, y / num),
+        // Scale to -1 ~ 1 by multiplying by 2 and subtracting 1
+        position: vec3.fromValues(
+          (x / (num - 1)) * 2 - 1,
+          (y / (num - 1)) * 2 - 1,
+          0
+        ),
+        texCoord: vec2.fromValues(x / (num - 1), y / (num - 1)), // texCoord remains in 0~1
       });
     }
   }
