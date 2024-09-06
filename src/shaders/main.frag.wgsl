@@ -5,5 +5,5 @@
 @fragment fn fs(input: VSOutput) -> @location(0) vec4f {
   let height = input.height;
   
-  return vec4f(0.8, 0.9 * (1.0 - height), 0.0, 1.0);
+  return vec4f(vec3f(1-height), 1.0);
 }
