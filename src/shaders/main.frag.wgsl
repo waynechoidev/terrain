@@ -6,7 +6,8 @@
     let height = pow(vec3f(input.height), vec3f(2.5));
 
     let green = vec3f(0.13, 0.7, 0.13);
-    var color = mix(green, vec3f(0.6, 0.0, 0.0), pow(vec3f(input.color), vec3f(1.5)));
+    let brown = vec3f(0.55, 0.194, 0.0);
+    var color = mix(green, brown, vec3f(input.color));
 
     // snow
     if(input.height > 0.56) {
