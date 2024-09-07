@@ -6,8 +6,12 @@
     let height = pow(vec3f(input.height), vec3f(2.0));
 
     let green = vec3f(0.13, 0.55, 0.13);
-    let color = mix(green, vec3f(0.0), pow(vec3f(input.color), vec3f(1.5)));
-    
-    let brightnessFactor:f32 = 3.0;
+    var color = mix(green, vec3f(0.0), pow(vec3f(input.color), vec3f(1.5)));
+
+    // snow
+    if(input.height > 0.56) {
+        color = vec3f(1.0);
+    }
+    let brightnessFactor:f32 = 2.5;
     return vec4f(color * height * brightnessFactor, 1.0);
 }
