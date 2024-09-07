@@ -28,6 +28,7 @@ export default class Renderer extends RendererBackend {
   private _projection!: mat4;
 
   private _progress = 0;
+  private _angle = 15;
 
   private readonly TEX_SIZE = 1024;
 
@@ -49,15 +50,17 @@ export default class Renderer extends RendererBackend {
 
     await this.createBindGroups();
 
-    this.setMatrix();
+    document.addEventListener("scroll", () => {
+      this._angle = 15 + window.scrollY * 0.1;
+    });
   }
 
   public async run() {
     this._progress += 0.001;
 
-    this.setFrameData();
+    this.setMatrix();
 
-    // mat4.rotateZ(this._model, this._model, toRadian(-0.1));
+    this.setFrameData();
 
     await this.writeBuffers();
 
@@ -181,7 +184,7 @@ export default class Renderer extends RendererBackend {
     );
     mat4.scale(this._model, this._model, vec3.fromValues(scale, scale, scale));
     mat4.rotateX(this._model, this._model, toRadian(-50));
-    mat4.rotateZ(this._model, this._model, toRadian(15));
+    mat4.rotateZ(this._model, this._model, toRadian(this._angle));
 
     this._camera = new Camera({
       position: vec3.fromValues(0, 0, 2.5),

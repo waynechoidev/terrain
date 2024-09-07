@@ -8,33 +8,21 @@ body {
 
 #app {
   width: 100%;
-  height: 100%;
+  height: 500%;
   display: flex;
   justify-content: center;
   position: relative;
 }
 
 canvas {
+  position: fixed;
   display: block;
   width: 100%;
   height: 100%;
 }
 
-#err-msg {
-  margin: 20px;
-}
-
-#click {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-20%, -50%);
-  font-size: 3rem;
-  cursor: pointer;
-}
-
 #fps {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 1rem;
   user-select: none;
