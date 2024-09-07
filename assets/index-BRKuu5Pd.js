@@ -80,16 +80,16 @@ fn scale_to_range(value: f32, min: f32, max: f32) -> f32 {
 @group(0) @binding(2) var mySampler: sampler;
 
 @fragment fn fs(input: VSOutput) -> @location(0) vec4f {
-    let height = pow(vec3f(input.height), vec3f(2.0));
+    let height = pow(vec3f(input.height), vec3f(2.5));
 
-    let green = vec3f(0.13, 0.55, 0.13);
-    var color = mix(green, vec3f(0.0), pow(vec3f(input.color), vec3f(1.5)));
+    let green = vec3f(0.13, 0.7, 0.13);
+    var color = mix(green, vec3f(0.6, 0.0, 0.0), pow(vec3f(input.color), vec3f(1.5)));
 
     
     if(input.height > 0.56) {
         color = vec3f(1.0);
     }
-    let brightnessFactor:f32 = 2.5;
+    let brightnessFactor:f32 = 3.0;
     return vec4f(color * height * brightnessFactor, 1.0);
 }`,z=`const TEX_SIZE:u32 = 1024;
 
@@ -132,7 +132,7 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     
     let uv = vec2<f32>(f32(x) / f32(TEX_SIZE) + uni.progress, f32(y) / f32(TEX_SIZE));
 
-    var height = noise_sum(uv, mat2x2<f32>(131.1, 213.7, 243.8, 113.3), 14232.34234);
+    var height = noise_sum(uv, mat2x2<f32>(131.1, 283.7, 143.8, 113.3), 14232.34234);
     height = (height + 1.0) * 0.5;
 
     var color = noise_sum(uv, mat2x2<f32>(423.5, 342.3, 153.7, 342.5), 18473.58352);
