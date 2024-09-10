@@ -2,6 +2,7 @@ import { toRadian } from "@/engine/utils";
 import main_vert from "@/shaders/main.vert.wgsl";
 import main_frag from "@/shaders/main.frag.wgsl";
 import noise_compute from "@/shaders/noise.compute.wgsl";
+import normal_compute from "@/shaders/normal.compute.wgsl";
 import { mat4, vec2, vec3 } from "gl-matrix";
 import Camera from "./camera";
 import RendererBackend from "./renderer_backend";
@@ -10,6 +11,7 @@ import Surface from "./geometry/surface";
 export default class Renderer extends RendererBackend {
   private _mainPipeline!: GPURenderPipeline;
   private _computeNoisePipeline!: GPUComputePipeline;
+  private _computeNormalPipeline!: GPUComputePipeline;
 
   private _vertexBuffer!: GPUBuffer;
   private _indexBuffer!: GPUBuffer;
@@ -18,10 +20,12 @@ export default class Renderer extends RendererBackend {
   private _noiseUniformBuffer!: GPUBuffer;
 
   private _heightMapTexture!: GPUTexture;
+  private _normalMapTexture!: GPUTexture;
   private _sampler!: GPUSampler;
 
   private _mainBindGroup!: GPUBindGroup;
   private _computeNoiseBindGroup!: GPUBindGroup;
+  private _computeNormalBindGroup!: GPUBindGroup;
 
   private _model!: mat4;
   private _camera!: Camera;
@@ -100,6 +104,11 @@ export default class Renderer extends RendererBackend {
       label: "noise compute pipeline",
       computeShader: noise_compute,
     });
+
+    this._computeNormalPipeline = await this.createComputePipeline({
+      label: "normal compute pipeline",
+      computeShader: normal_compute,
+    });
   }
 
   private async createVertexBuffers() {
@@ -147,6 +156,16 @@ export default class Renderer extends RendererBackend {
         GPUTextureUsage.STORAGE_BINDING,
     });
 
+    this._normalMapTexture = this._device.createTexture({
+      label: "normal map texture",
+      size: [this.TEX_SIZE, this.TEX_SIZE],
+      format: "rgba8unorm",
+      usage:
+        GPUTextureUsage.COPY_DST |
+        GPUTextureUsage.TEXTURE_BINDING |
+        GPUTextureUsage.STORAGE_BINDING,
+    });
+
     this._sampler = this._device.createSampler({
       magFilter: "linear",
       minFilter: "linear",
@@ -171,6 +190,16 @@ export default class Renderer extends RendererBackend {
       entries: [
         { binding: 0, resource: this._heightMapTexture.createView() },
         { binding: 1, resource: { buffer: this._noiseUniformBuffer } },
+      ],
+    });
+
+    this._computeNormalBindGroup = this._device.createBindGroup({
+      label: "compute noise bind group",
+      layout: this._computeNormalPipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: this._heightMapTexture.createView() },
+        { binding: 1, resource: this._normalMapTexture.createView() },
+        { binding: 2, resource: this._sampler },
       ],
     });
   }
@@ -241,6 +270,14 @@ export default class Renderer extends RendererBackend {
 
     computePassEncoder.setPipeline(this._computeNoisePipeline);
     computePassEncoder.setBindGroup(0, this._computeNoiseBindGroup);
+    computePassEncoder.dispatchWorkgroups(
+      this.TEX_SIZE / this.WORKGROUP_SIZE,
+      this.TEX_SIZE / this.WORKGROUP_SIZE,
+      1
+    );
+
+    computePassEncoder.setPipeline(this._computeNormalPipeline);
+    computePassEncoder.setBindGroup(0, this._computeNormalBindGroup);
     computePassEncoder.dispatchWorkgroups(
       this.TEX_SIZE / this.WORKGROUP_SIZE,
       this.TEX_SIZE / this.WORKGROUP_SIZE,
