@@ -6,8 +6,8 @@ export default abstract class RendererBackend {
   protected _canvasContext!: GPUCanvasContext;
   protected _commandEncoder!: GPUCommandEncoder;
 
-  protected readonly WIDTH: number;
-  protected readonly HEIGHT: number;
+  // protected readonly WIDTH: number;
+  // protected readonly HEIGHT: number;
   protected readonly WORKGROUP_SIZE = 16;
 
   protected _fps: HTMLElement;
@@ -18,11 +18,8 @@ export default abstract class RendererBackend {
   protected _frameCount: number;
 
   constructor() {
-    this.WIDTH =
-      Math.floor(window.innerWidth / this.WORKGROUP_SIZE) * this.WORKGROUP_SIZE;
-    this.HEIGHT =
-      Math.floor(window.innerHeight / this.WORKGROUP_SIZE) *
-      this.WORKGROUP_SIZE;
+    // this.WIDTH = window.innerWidth;
+    // this.HEIGHT = window.innerHeight;
 
     this._previousFrameTime = performance.now();
     this._previousFpsUpdateTime = performance.now();
@@ -48,8 +45,8 @@ export default abstract class RendererBackend {
     this._canvas = document.querySelector("canvas") as HTMLCanvasElement;
     if (!this._canvas) console.error("Cannot find a canvas");
 
-    this._canvas.width = this.WIDTH;
-    this._canvas.height = this.HEIGHT;
+    this._canvas.width = window.innerWidth;
+    this._canvas.height = window.innerHeight;
 
     this._canvasContext = this._canvas.getContext("webgpu") as GPUCanvasContext;
     if (!this._canvasContext) console.error("Cannot find a canvas context");
@@ -267,23 +264,5 @@ export default abstract class RendererBackend {
     }
 
     this._previousFrameTime = time;
-  }
-
-  protected initializeVecNArray(n: number) {
-    return new Float32Array(this.WIDTH * this.HEIGHT * n);
-  }
-
-  protected createSurfaceBuffer(label: string, n: number) {
-    const buffer = this._device.createBuffer({
-      label: `${label} storage buffer`,
-      size: this.WIDTH * this.HEIGHT * n * Float32Array.BYTES_PER_ELEMENT,
-      usage:
-        GPUBufferUsage.STORAGE |
-        GPUBufferUsage.COPY_SRC |
-        GPUBufferUsage.COPY_DST,
-    });
-    // initialize
-    this._device.queue.writeBuffer(buffer, 0, this.initializeVecNArray(n));
-    return buffer;
   }
 }

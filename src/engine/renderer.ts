@@ -177,11 +177,11 @@ export default class Renderer extends RendererBackend {
 
   private setMatrix() {
     this._model = mat4.create();
-    const scale = this.WIDTH > 500 ? 0.8 : 0.5;
+    const scale = window.innerWidth > 500 ? 0.8 : 0.5;
     mat4.translate(
       this._model,
       this._model,
-      vec3.fromValues(0, this.WIDTH > 500 ? -0.5 : -0.3, 0)
+      vec3.fromValues(0, window.innerHeight > 500 ? -0.5 : -0.3, 0)
     );
     mat4.scale(this._model, this._model, vec3.fromValues(scale, scale, scale));
     mat4.rotateX(this._model, this._model, toRadian(-50));
@@ -198,7 +198,7 @@ export default class Renderer extends RendererBackend {
     mat4.perspective(
       this._projection,
       toRadian(45),
-      this.WIDTH / this.HEIGHT,
+      window.innerWidth / window.innerHeight,
       0.1,
       100
     );
