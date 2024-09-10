@@ -11,8 +11,7 @@ export default abstract class RendererBackend {
   protected readonly WORKGROUP_SIZE = 16;
 
   protected _fps: HTMLElement;
-  protected _drag: HTMLElement;
-  protected _warning: HTMLElement;
+  protected _scroll: HTMLElement;
   protected _previousFrameTime: number;
   protected _previousFpsUpdateTime: number;
   protected _delta: number;
@@ -30,8 +29,7 @@ export default abstract class RendererBackend {
     this._delta = 0;
     this._frameCount = 0;
     this._fps = document.getElementById("fps") as HTMLElement;
-    this._drag = document.getElementById("drag") as HTMLElement;
-    this._warning = document.getElementById("warning") as HTMLElement;
+    this._scroll = document.getElementById("scroll") as HTMLElement;
   }
 
   abstract initialize(): Promise<void>;

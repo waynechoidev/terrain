@@ -51,6 +51,7 @@ export default class Renderer extends RendererBackend {
     await this.createBindGroups();
 
     document.addEventListener("scroll", () => {
+      this._scroll.hidden = true;
       this._angle = 15 + window.scrollY * 0.1;
     });
   }
