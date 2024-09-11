@@ -1,8 +1,9 @@
 #include "common.wgsl"
 
-@group(0) @binding(0) var noise_texture: texture_2d<f32>;
-@group(0) @binding(1) var normal_texture: texture_storage_2d<rgba8unorm, write>;
-@group(0) @binding(2) var my_sampler: sampler;
+@group(0) @binding(0) var<uniform> uni: Uniforms;
+@group(0) @binding(1) var noise_texture: texture_2d<f32>;
+@group(0) @binding(2) var normal_texture: texture_storage_2d<rgba8unorm, write>;
+@group(0) @binding(3) var my_sampler: sampler;
 
 @compute @workgroup_size(16, 16, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {
@@ -38,8 +39,8 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     let down_val:f32 = textureSampleLevel(noise_texture, my_sampler, down, 0).r;
 
     // Compute gradient vectors
-    let dx = vec3f(2.0 / size, 0.0, (right_val - left_val) * HEIGHT_SCALE);
-    let dy = vec3f(0.0, 2.0 / size, (up_val - down_val) * HEIGHT_SCALE);
+    let dx = vec3f(2.0 / size, 0.0, (right_val - left_val) * uni.height_scale);
+    let dy = vec3f(0.0, 2.0 / size, (up_val - down_val) * uni.height_scale);
 
     // Calculate normal vector using cross product
     let normal = normalize(cross(dx, dy));

@@ -1,5 +1,4 @@
 const TEX_SIZE:u32 = 1024;
-const HEIGHT_SCALE:f32 = 2.0;
 
 struct VSOutput {
   @builtin(position) position: vec4f,
@@ -12,6 +11,15 @@ struct VSOutput {
 struct Vertex {
   @location(0) position: vec3f,
   @location(1) tex_coord: vec2f,
+};
+
+struct Uniforms {
+  color_1:vec3f,
+  snow_height:f32,
+  color_2:vec3f,
+  height_scale:f32,
+  cam_pos:vec3f,
+  progress: f32,
 };
 
 fn getIdx(coord:vec2u) -> u32 {

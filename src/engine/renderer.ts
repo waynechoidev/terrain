@@ -3,7 +3,7 @@ import main_vert from "@/shaders/main.vert.wgsl";
 import main_frag from "@/shaders/main.frag.wgsl";
 import noise_compute from "@/shaders/noise.compute.wgsl";
 import normal_compute from "@/shaders/normal.compute.wgsl";
-import { mat4, vec2, vec3 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import Camera from "./camera";
 import RendererBackend from "./renderer_backend";
 import Surface from "./geometry/surface";
@@ -17,7 +17,7 @@ export default class Renderer extends RendererBackend {
   private _indexBuffer!: GPUBuffer;
   private _indicesLength!: number;
   private _matrixUniformBuffer!: GPUBuffer;
-  private _noiseUniformBuffer!: GPUBuffer;
+  private _uniformBuffer!: GPUBuffer;
 
   private _noiseMapTexture!: GPUTexture;
   private _normalMapTexture!: GPUTexture;
@@ -32,13 +32,24 @@ export default class Renderer extends RendererBackend {
   private _projection!: mat4;
   private _invTransposedModel!: mat4;
 
-  private _progress = 0;
-  private _angle = 15;
+  private _color1: vec3;
+  private _color2: vec3;
+  private _snowHeight: number;
+  private _heightScale: number;
+  private _progress: number;
+  private _angle: number;
 
   private readonly TEX_SIZE = 1024;
 
   constructor() {
     super();
+
+    this._color1 = vec3.fromValues(0.13, 0.7, 0.13);
+    this._color2 = vec3.fromValues(0.55, 0.194, 0.0);
+    this._snowHeight = 0.56;
+    this._heightScale = 2;
+    this._progress = 0;
+    this._angle = 15;
   }
 
   // public methods
@@ -142,9 +153,9 @@ export default class Renderer extends RendererBackend {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
-    this._noiseUniformBuffer = this._device.createBuffer({
+    this._uniformBuffer = this._device.createBuffer({
       label: "noise uniforms",
-      size: 4 * Float32Array.BYTES_PER_ELEMENT,
+      size: 12 * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
   }
@@ -183,9 +194,10 @@ export default class Renderer extends RendererBackend {
       layout: this._mainPipeline.getBindGroupLayout(0),
       entries: [
         { binding: 0, resource: { buffer: this._matrixUniformBuffer } },
-        { binding: 1, resource: this._noiseMapTexture.createView() },
-        { binding: 2, resource: this._normalMapTexture.createView() },
-        { binding: 3, resource: this._sampler },
+        { binding: 1, resource: { buffer: this._uniformBuffer } },
+        { binding: 2, resource: this._noiseMapTexture.createView() },
+        { binding: 3, resource: this._normalMapTexture.createView() },
+        { binding: 4, resource: this._sampler },
       ],
     });
 
@@ -193,8 +205,8 @@ export default class Renderer extends RendererBackend {
       label: "compute noise bind group",
       layout: this._computeNoisePipeline.getBindGroupLayout(0),
       entries: [
-        { binding: 0, resource: this._noiseMapTexture.createView() },
-        { binding: 1, resource: { buffer: this._noiseUniformBuffer } },
+        { binding: 0, resource: { buffer: this._uniformBuffer } },
+        { binding: 1, resource: this._noiseMapTexture.createView() },
       ],
     });
 
@@ -202,9 +214,10 @@ export default class Renderer extends RendererBackend {
       label: "compute normal bind group",
       layout: this._computeNormalPipeline.getBindGroupLayout(0),
       entries: [
-        { binding: 0, resource: this._noiseMapTexture.createView() },
-        { binding: 1, resource: this._normalMapTexture.createView() },
-        { binding: 2, resource: this._sampler },
+        { binding: 0, resource: { buffer: this._uniformBuffer } },
+        { binding: 1, resource: this._noiseMapTexture.createView() },
+        { binding: 2, resource: this._normalMapTexture.createView() },
+        { binding: 3, resource: this._sampler },
       ],
     });
   }
@@ -214,7 +227,6 @@ export default class Renderer extends RendererBackend {
       position: vec3.fromValues(0, 0, 2.5),
       center: vec3.fromValues(0, 0, 0),
       up: vec3.fromValues(0, 1, 0),
-      initialRotate: vec2.fromValues(0, 0),
     });
 
     this._projection = mat4.create();
@@ -257,9 +269,16 @@ export default class Renderer extends RendererBackend {
     );
 
     this._device.queue.writeBuffer(
-      this._noiseUniformBuffer,
+      this._uniformBuffer,
       0,
-      new Float32Array([this._progress, 0, 0, 0])
+      new Float32Array([
+        ...this._color1,
+        this._snowHeight,
+        ...this._color2,
+        this._heightScale,
+        ...this._camera.pos,
+        this._progress,
+      ])
     );
   }
 

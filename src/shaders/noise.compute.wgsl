@@ -1,11 +1,7 @@
 #include "common.wgsl"
 
-struct NoiseUniforms {
-  progress: f32,
-};
-
-@group(0) @binding(0) var noise_texture: texture_storage_2d<rgba8unorm, write>;
-@group(0) @binding(1) var<uniform> uni: NoiseUniforms;
+@group(0) @binding(0) var<uniform> uni: Uniforms;
+@group(0) @binding(1) var noise_texture: texture_storage_2d<rgba8unorm, write>;
 
 @compute @workgroup_size(16, 16, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {

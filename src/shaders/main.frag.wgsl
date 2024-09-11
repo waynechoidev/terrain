@@ -1,6 +1,5 @@
 #include "common.wgsl"
-@group(0) @binding(1) var heightMap: texture_2d<f32>;
-@group(0) @binding(2) var mySampler: sampler;
+@group(0) @binding(1) var<uniform> uni: Uniforms;
 
 struct Material {
     specular: f32,
@@ -15,17 +14,14 @@ struct Light {
 };
 
 @fragment fn fs(input: VSOutput) -> @location(0) vec4f {
-    let height = pow(vec3f(input.height), vec3f(3.0));
-
-    let green = vec3f(0.13, 0.7, 0.13);
-    let brown = vec3f(0.55, 0.194, 0.0);
-    var color = mix(green, brown, vec3f(input.color));
+    var albedo = mix(uni.color_1, uni.color_2, vec3f(input.color));
 
     // snow
-    if(input.height > 0.56) {
-        color = vec3f(1.0);
+    if(input.height > uni.snow_height) {
+        albedo = vec3f(1.0);
     }
-    color = color * height;
+
+    let ambient_occlusion = pow(vec3f(input.height), vec3f(3.0));
 
     var material:Material;
     material.ambient = 0.1;
@@ -39,9 +35,11 @@ struct Light {
 
     let cam_pos:vec3f = vec3f(0.0, 0.0, 2.5);
     let to_eye:vec3f = normalize(cam_pos - input.pos_world);
-    let light_factor = computeDirectionalLight(light, material, input.normal_world, to_eye);
+    let global_light = computeDirectionalLight(light, material, input.normal_world, to_eye);
 
-    return vec4f(color*light_factor, 1.0);
+    let color = albedo * ambient_occlusion * global_light;
+
+    return vec4f(color, 1.0);
 }
 
 

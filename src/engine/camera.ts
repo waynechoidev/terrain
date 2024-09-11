@@ -25,4 +25,8 @@ export default class Camera {
 
     return view;
   }
+
+  public get pos() {
+    return this._position;
+  }
 }
