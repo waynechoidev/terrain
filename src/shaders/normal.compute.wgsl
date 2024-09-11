@@ -9,26 +9,26 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     let x = f32(id.x);
     let y = f32(id.y);
 
-    // Define neighboring coordinates with wrap-around logic
-    var left = vec2f(x - 1, y);
-    var right = vec2f(x + 1, y);
-    var down = vec2f(x, y - 1);
-    var up = vec2f(x, y + 1);
-
     let size = f32(TEX_SIZE);
 
+    // Define neighboring coordinates with wrap-around logic
+    var left = vec2f((x - 1.0) / size, y / size);
+    var right = vec2f((x + 1.0) / size, y / size);
+    var down = vec2f(x / size, (y - 1.0) / size);
+    var up = vec2f(x / size, (y + 1.0) / size);
+
     // Wrap around edges to handle boundary conditions
-    if (x == 0) {
-        left.x = size - 1;
+    if (x == 0.0) {
+        left.x = (size - 1.0) / size;
     }
-    if (x == size - 1) {
-        right.x = 0;
+    if (x == size - 1.0) {
+        right.x = 0.0;
     }
-    if (y == size - 1) {
-        up.y = 0;
+    if (y == size - 1.0) {
+        up.y = 0.0;
     }
-    if (y == 0) {
-        down.y = size - 1;
+    if (y == 0.0) {
+        down.y = (size - 1.0) / size;
     }
 
     // Sample height values from the texture
@@ -38,8 +38,8 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     let down_val:f32 = textureSampleLevel(noise_texture, my_sampler, down, 0).r;
 
     // Compute gradient vectors
-    let dx = vec3f(2.0, 0.0, (right_val - left_val) * HEIGHT_SCALE);
-    let dy = vec3f(0.0, 2.0, (up_val - down_val) * HEIGHT_SCALE);
+    let dx = vec3f(2.0 / size, 0.0, (right_val - left_val) * HEIGHT_SCALE);
+    let dy = vec3f(0.0, 2.0 / size, (up_val - down_val) * HEIGHT_SCALE);
 
     // Calculate normal vector using cross product
     let normal = normalize(cross(dx, dy));
