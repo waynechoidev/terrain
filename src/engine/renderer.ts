@@ -72,6 +72,22 @@ export default class Renderer extends RendererBackend {
       this._scroll.hidden = true;
       this._angle = 15 + window.scrollY * 0.1;
     });
+
+    this._snow.min = "0";
+    this._snow.max = "80";
+    this._snow.value = (this._snowHeight * 100).toString();
+    this._snow.addEventListener("input", () => {
+      this._snowHeight = parseFloat(this._snow.value) / 100;
+      console.log(this._snow.value);
+    });
+
+    this._mountain.min = "0";
+    this._mountain.max = "500";
+    this._mountain.value = (this._heightScale * 100).toString();
+    this._mountain.addEventListener("input", () => {
+      this._heightScale = parseFloat(this._mountain.value) / 100;
+      console.log(this._mountain.value);
+    });
   }
 
   public async run() {
@@ -245,7 +261,8 @@ export default class Renderer extends RendererBackend {
     mat4.translate(
       this._model,
       this._model,
-      vec3.fromValues(0, window.innerHeight > 500 ? -0.5 : -0.3, 0)
+      // vec3.fromValues(0, window.innerHeight > 500 ? -0.5 : -0.3, 0)
+      vec3.fromValues(0, this._heightScale * -0.25, 0)
     );
     mat4.scale(this._model, this._model, vec3.fromValues(scale, scale, scale));
     mat4.rotateX(this._model, this._model, toRadian(-50));

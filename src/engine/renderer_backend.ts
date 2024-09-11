@@ -12,21 +12,22 @@ export default abstract class RendererBackend {
 
   protected _fps: HTMLElement;
   protected _scroll: HTMLElement;
+  protected _snow: HTMLInputElement;
+  protected _mountain: HTMLInputElement;
   protected _previousFrameTime: number;
   protected _previousFpsUpdateTime: number;
   protected _delta: number;
   protected _frameCount: number;
 
   constructor() {
-    // this.WIDTH = window.innerWidth;
-    // this.HEIGHT = window.innerHeight;
-
     this._previousFrameTime = performance.now();
     this._previousFpsUpdateTime = performance.now();
     this._delta = 0;
     this._frameCount = 0;
     this._fps = document.getElementById("fps") as HTMLElement;
     this._scroll = document.getElementById("scroll") as HTMLElement;
+    this._snow = document.getElementById("snow") as HTMLInputElement;
+    this._mountain = document.getElementById("mountain") as HTMLInputElement;
   }
 
   abstract initialize(): Promise<void>;
