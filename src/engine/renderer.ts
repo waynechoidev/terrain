@@ -73,8 +73,8 @@ export default class Renderer extends RendererBackend {
       this._angle = 15 + window.scrollY * 0.1;
     });
 
-    this._snow.min = "0";
-    this._snow.max = "80";
+    this._snow.min = "30";
+    this._snow.max = "70";
     this._snow.value = (this._snowHeight * 100).toString();
     this._snow.addEventListener("input", () => {
       this._snowHeight = parseFloat(this._snow.value) / 100;
