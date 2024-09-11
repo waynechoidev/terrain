@@ -38,6 +38,7 @@ export default class Renderer extends RendererBackend {
   private _heightScale: number;
   private _progress: number;
   private _angle: number;
+  private _speedFactor: number;
 
   private readonly TEX_SIZE = 1024;
 
@@ -50,6 +51,7 @@ export default class Renderer extends RendererBackend {
     this._heightScale = 2;
     this._progress = 0;
     this._angle = 15;
+    this._speedFactor = 0.001;
   }
 
   // public methods
@@ -73,12 +75,18 @@ export default class Renderer extends RendererBackend {
       this._angle = 15 + window.scrollY * 0.1;
     });
 
+    this._speed.min = "1";
+    this._speed.max = "10";
+    this._speed.value = (this._speedFactor * 1000).toString();
+    this._speed.addEventListener("input", () => {
+      this._speedFactor = parseFloat(this._speed.value) / 1000;
+    });
+
     this._snow.min = "30";
     this._snow.max = "70";
     this._snow.value = (this._snowHeight * 100).toString();
     this._snow.addEventListener("input", () => {
       this._snowHeight = parseFloat(this._snow.value) / 100;
-      console.log(this._snow.value);
     });
 
     this._mountain.min = "0";
@@ -86,12 +94,11 @@ export default class Renderer extends RendererBackend {
     this._mountain.value = (this._heightScale * 100).toString();
     this._mountain.addEventListener("input", () => {
       this._heightScale = parseFloat(this._mountain.value) / 100;
-      console.log(this._mountain.value);
     });
   }
 
   public async run() {
-    this._progress += 0.001;
+    this._progress += this._speedFactor;
 
     this.setDynamicMatrix();
 

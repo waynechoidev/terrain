@@ -12,6 +12,7 @@ export default abstract class RendererBackend {
 
   protected _fps: HTMLElement;
   protected _scroll: HTMLElement;
+  protected _speed: HTMLInputElement;
   protected _snow: HTMLInputElement;
   protected _mountain: HTMLInputElement;
   protected _previousFrameTime: number;
@@ -26,6 +27,7 @@ export default abstract class RendererBackend {
     this._frameCount = 0;
     this._fps = document.getElementById("fps") as HTMLElement;
     this._scroll = document.getElementById("scroll") as HTMLElement;
+    this._speed = document.getElementById("speed") as HTMLInputElement;
     this._snow = document.getElementById("snow") as HTMLInputElement;
     this._mountain = document.getElementById("mountain") as HTMLInputElement;
   }
