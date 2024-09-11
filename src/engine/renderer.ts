@@ -19,7 +19,7 @@ export default class Renderer extends RendererBackend {
   private _matrixUniformBuffer!: GPUBuffer;
   private _noiseUniformBuffer!: GPUBuffer;
 
-  private _heightMapTexture!: GPUTexture;
+  private _noiseMapTexture!: GPUTexture;
   private _normalMapTexture!: GPUTexture;
   private _sampler!: GPUSampler;
 
@@ -150,8 +150,8 @@ export default class Renderer extends RendererBackend {
   }
 
   private async createTextures() {
-    this._heightMapTexture = this._device.createTexture({
-      label: "height map texture",
+    this._noiseMapTexture = this._device.createTexture({
+      label: "noise map texture",
       size: [this.TEX_SIZE, this.TEX_SIZE],
       format: "rgba8unorm",
       usage:
@@ -183,8 +183,9 @@ export default class Renderer extends RendererBackend {
       layout: this._mainPipeline.getBindGroupLayout(0),
       entries: [
         { binding: 0, resource: { buffer: this._matrixUniformBuffer } },
-        { binding: 1, resource: this._heightMapTexture.createView() },
-        { binding: 2, resource: this._sampler },
+        { binding: 1, resource: this._noiseMapTexture.createView() },
+        { binding: 2, resource: this._normalMapTexture.createView() },
+        { binding: 3, resource: this._sampler },
       ],
     });
 
@@ -192,16 +193,16 @@ export default class Renderer extends RendererBackend {
       label: "compute noise bind group",
       layout: this._computeNoisePipeline.getBindGroupLayout(0),
       entries: [
-        { binding: 0, resource: this._heightMapTexture.createView() },
+        { binding: 0, resource: this._noiseMapTexture.createView() },
         { binding: 1, resource: { buffer: this._noiseUniformBuffer } },
       ],
     });
 
     this._computeNormalBindGroup = this._device.createBindGroup({
-      label: "compute noise bind group",
+      label: "compute normal bind group",
       layout: this._computeNormalPipeline.getBindGroupLayout(0),
       entries: [
-        { binding: 0, resource: this._heightMapTexture.createView() },
+        { binding: 0, resource: this._noiseMapTexture.createView() },
         { binding: 1, resource: this._normalMapTexture.createView() },
         { binding: 2, resource: this._sampler },
       ],

@@ -3,8 +3,10 @@ const HEIGHT_SCALE:f32 = 2.0;
 
 struct VSOutput {
   @builtin(position) position: vec4f,
-  @location(1) height: f32,
-  @location(2) color: f32,
+  @location(1) pos_world: vec3f,
+  @location(2) normal_world: vec3f,
+  @location(3) height: f32,
+  @location(4) color: f32,
 };
 
 struct Vertex {
