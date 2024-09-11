@@ -30,6 +30,7 @@ export default class Renderer extends RendererBackend {
   private _model!: mat4;
   private _camera!: Camera;
   private _projection!: mat4;
+  private _invTransposedModel!: mat4;
 
   private _progress = 0;
   private _angle = 15;
@@ -54,6 +55,8 @@ export default class Renderer extends RendererBackend {
 
     await this.createBindGroups();
 
+    this.setStaticMatrix();
+
     document.addEventListener("scroll", () => {
       this._scroll.hidden = true;
       this._angle = 15 + window.scrollY * 0.1;
@@ -63,7 +66,7 @@ export default class Renderer extends RendererBackend {
   public async run() {
     this._progress += 0.001;
 
-    this.setMatrix();
+    this.setDynamicMatrix();
 
     this.setFrameData();
 
@@ -135,9 +138,10 @@ export default class Renderer extends RendererBackend {
   private async createOtherBuffers() {
     this._matrixUniformBuffer = this._device.createBuffer({
       label: "matrix uniforms",
-      size: (16 + 16 + 16) * Float32Array.BYTES_PER_ELEMENT,
+      size: 16 * 4 * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
+
     this._noiseUniformBuffer = this._device.createBuffer({
       label: "noise uniforms",
       size: 4 * Float32Array.BYTES_PER_ELEMENT,
@@ -204,18 +208,7 @@ export default class Renderer extends RendererBackend {
     });
   }
 
-  private setMatrix() {
-    this._model = mat4.create();
-    const scale = window.innerWidth > 500 ? 0.8 : 0.5;
-    mat4.translate(
-      this._model,
-      this._model,
-      vec3.fromValues(0, window.innerHeight > 500 ? -0.5 : -0.3, 0)
-    );
-    mat4.scale(this._model, this._model, vec3.fromValues(scale, scale, scale));
-    mat4.rotateX(this._model, this._model, toRadian(-50));
-    mat4.rotateZ(this._model, this._model, toRadian(this._angle));
-
+  private setStaticMatrix() {
     this._camera = new Camera({
       position: vec3.fromValues(0, 0, 2.5),
       center: vec3.fromValues(0, 0, 0),
@@ -233,12 +226,33 @@ export default class Renderer extends RendererBackend {
     );
   }
 
+  private setDynamicMatrix() {
+    this._model = mat4.create();
+    const scale = window.innerWidth > 500 ? 0.8 : 0.5;
+    mat4.translate(
+      this._model,
+      this._model,
+      vec3.fromValues(0, window.innerHeight > 500 ? -0.5 : -0.3, 0)
+    );
+    mat4.scale(this._model, this._model, vec3.fromValues(scale, scale, scale));
+    mat4.rotateX(this._model, this._model, toRadian(-50));
+    mat4.rotateZ(this._model, this._model, toRadian(this._angle));
+
+    this._invTransposedModel = mat4.clone(this._model);
+    mat4.invert(this._invTransposedModel, this._invTransposedModel);
+    mat4.transpose(this._invTransposedModel, this._invTransposedModel);
+  }
+
   private async writeBuffers() {
-    const view = this._camera.getViewMatrix();
     this._device.queue.writeBuffer(
       this._matrixUniformBuffer,
       0,
-      new Float32Array([...this._model, ...view, ...this._projection])
+      new Float32Array([
+        ...this._model,
+        ...this._camera.getViewMatrix(),
+        ...this._projection,
+        ...this._invTransposedModel,
+      ])
     );
 
     this._device.queue.writeBuffer(

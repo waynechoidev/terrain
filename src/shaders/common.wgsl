@@ -9,13 +9,14 @@ struct VSOutput {
 
 struct Vertex {
   @location(0) position: vec3f,
-  @location(1) texCoord: vec2f,
+  @location(1) tex_coord: vec2f,
 };
 
 struct MatrixUniforms {
   model: mat4x4f,
   view: mat4x4f,
   projection: mat4x4f,
+  inv_transposed_model: mat4x4f,
 };
 
 struct NoiseUniforms {
