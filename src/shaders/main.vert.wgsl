@@ -1,5 +1,12 @@
 #include "common.wgsl"
 
+struct MatrixUniforms {
+  model: mat4x4f,
+  view: mat4x4f,
+  projection: mat4x4f,
+  inv_transposed_model: mat4x4f,
+};
+
 @group(0) @binding(0) var<uniform> uni: MatrixUniforms;
 @group(0) @binding(1) var noise_map: texture_2d<f32>;
 @group(0) @binding(2) var normal_map: texture_2d<f32>;
@@ -21,7 +28,8 @@
 
   output.position = uni.projection * uni.view * uni.model * vec4f(position, 1.0);
   output.pos_world = (uni.model * vec4f(position, 1.0)).xyz;
-  output.normal_world = normalize(uni.inv_transposed_model * normal).xyz;
+  // output.normal_world = normalize(uni.inv_transposed_model * normal).xyz;
+  output.normal_world = normalize(normal).xyz;
   output.height = height;
   output.color = color;
   

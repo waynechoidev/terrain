@@ -14,17 +14,6 @@ struct Vertex {
   @location(1) tex_coord: vec2f,
 };
 
-struct MatrixUniforms {
-  model: mat4x4f,
-  view: mat4x4f,
-  projection: mat4x4f,
-  inv_transposed_model: mat4x4f,
-};
-
-struct NoiseUniforms {
-  progress: f32,
-};
-
 fn getIdx(coord:vec2u) -> u32 {
     return coord.x + coord.y * TEX_SIZE;
 }
