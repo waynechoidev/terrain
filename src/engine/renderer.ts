@@ -229,7 +229,7 @@ export default class Renderer extends RendererBackend {
 
   private setDynamicMatrix() {
     this._model = mat4.create();
-    const scale = window.innerWidth > 500 ? 0.8 : 0.5;
+    const scale = 0.6;
     mat4.translate(
       this._model,
       this._model,
